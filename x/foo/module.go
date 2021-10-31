@@ -1,7 +1,6 @@
-package planet
+package foo
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	// this line is used by starport scaffolding # 1
@@ -17,14 +16,16 @@ import (
 	cdctypes "github.com/cosmos/cosmos-sdk/codec/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/cosmos/cosmos-sdk/types/module"
-	"github.com/hello/planet/x/planet/client/cli"
-	"github.com/hello/planet/x/planet/keeper"
-	"github.com/hello/planet/x/planet/types"
+	porttypes "github.com/cosmos/ibc-go/modules/core/05-port/types"
+	"github.com/hello/planet/x/foo/client/cli"
+	"github.com/hello/planet/x/foo/keeper"
+	"github.com/hello/planet/x/foo/types"
 )
 
 var (
 	_ module.AppModule      = AppModule{}
 	_ module.AppModuleBasic = AppModuleBasic{}
+	_ porttypes.IBCModule   = AppModule{}
 )
 
 // ----------------------------------------------------------------------------
@@ -79,7 +80,6 @@ func (AppModuleBasic) RegisterRESTRoutes(clientCtx client.Context, rtr *mux.Rout
 // RegisterGRPCGatewayRoutes registers the gRPC Gateway routes for the module.
 func (AppModuleBasic) RegisterGRPCGatewayRoutes(clientCtx client.Context, mux *runtime.ServeMux) {
 	// this line is used by starport scaffolding # 2
-	types.RegisterQueryHandlerClient(context.Background(), mux, types.NewQueryClient(clientCtx))
 }
 
 // GetTxCmd returns the capability module's root tx command.

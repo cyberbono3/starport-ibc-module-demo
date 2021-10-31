@@ -1,0 +1,12 @@
+syntax = "proto3";
+package hello.planet.foo;
+
+// this line is used by starport scaffolding # genesis/proto/import
+
+option go_package = "github.com/hello/planet/x/foo/types";
+
+// GenesisState defines the foo module's genesis state.
+message GenesisState {
+    string port_id = 1;
+  // this line is used by starport scaffolding # genesis/proto/state
+}

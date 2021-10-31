@@ -88,6 +88,9 @@ import (
 
 	"github.com/hello/planet/docs"
 
+	foomodule "github.com/hello/planet/x/foo"
+	foomodulekeeper "github.com/hello/planet/x/foo/keeper"
+	foomoduletypes "github.com/hello/planet/x/foo/types"
 	planetmodule "github.com/hello/planet/x/planet"
 	planetmodulekeeper "github.com/hello/planet/x/planet/keeper"
 	planetmoduletypes "github.com/hello/planet/x/planet/types"
@@ -142,6 +145,7 @@ var (
 		transfer.AppModuleBasic{},
 		vesting.AppModuleBasic{},
 		planetmodule.AppModuleBasic{},
+		foomodule.AppModuleBasic{},
 		// this line is used by starport scaffolding # stargate/app/moduleBasic
 	)
 
@@ -210,7 +214,9 @@ type App struct {
 	ScopedIBCKeeper      capabilitykeeper.ScopedKeeper
 	ScopedTransferKeeper capabilitykeeper.ScopedKeeper
 
-	PlanetKeeper planetmodulekeeper.Keeper
+	PlanetKeeper    planetmodulekeeper.Keeper
+	ScopedFooKeeper capabilitykeeper.ScopedKeeper
+	FooKeeper       foomodulekeeper.Keeper
 	// this line is used by starport scaffolding # stargate/app/keeperDeclaration
 
 	// the module manager
@@ -245,6 +251,7 @@ func New(
 		govtypes.StoreKey, paramstypes.StoreKey, ibchost.StoreKey, upgradetypes.StoreKey, feegrant.StoreKey,
 		evidencetypes.StoreKey, ibctransfertypes.StoreKey, capabilitytypes.StoreKey,
 		planetmoduletypes.StoreKey,
+		foomoduletypes.StoreKey,
 		// this line is used by starport scaffolding # stargate/app/storeKey
 	)
 	tkeys := sdk.NewTransientStoreKeys(paramstypes.TStoreKey)
@@ -350,11 +357,24 @@ func New(
 	)
 	planetModule := planetmodule.NewAppModule(appCodec, app.PlanetKeeper)
 
+	scopedFooKeeper := app.CapabilityKeeper.ScopeToModule(foomoduletypes.ModuleName)
+	app.ScopedFooKeeper = scopedFooKeeper
+	app.FooKeeper = *foomodulekeeper.NewKeeper(
+		appCodec,
+		keys[foomoduletypes.StoreKey],
+		keys[foomoduletypes.MemStoreKey],
+		app.IBCKeeper.ChannelKeeper,
+		&app.IBCKeeper.PortKeeper,
+		scopedFooKeeper,
+	)
+	fooModule := foomodule.NewAppModule(appCodec, app.FooKeeper)
+
 	// this line is used by starport scaffolding # stargate/app/keeperDefinition
 
 	// Create static IBC router, add transfer route, then set and seal it
 	ibcRouter := ibcporttypes.NewRouter()
 	ibcRouter.AddRoute(ibctransfertypes.ModuleName, transferModule)
+	ibcRouter.AddRoute(foomoduletypes.ModuleName, fooModule)
 	// this line is used by starport scaffolding # ibc/app/router
 	app.IBCKeeper.SetRouter(ibcRouter)
 
@@ -389,6 +409,7 @@ func New(
 		params.NewAppModule(app.ParamsKeeper),
 		transferModule,
 		planetModule,
+		fooModule,
 		// this line is used by starport scaffolding # stargate/app/appModule
 	)
 
@@ -424,6 +445,7 @@ func New(
 		evidencetypes.ModuleName,
 		ibctransfertypes.ModuleName,
 		planetmoduletypes.ModuleName,
+		foomoduletypes.ModuleName,
 		// this line is used by starport scaffolding # stargate/app/initGenesis
 	)
 
@@ -612,6 +634,7 @@ func initParamsKeeper(appCodec codec.BinaryCodec, legacyAmino *codec.LegacyAmino
 	paramsKeeper.Subspace(ibctransfertypes.ModuleName)
 	paramsKeeper.Subspace(ibchost.ModuleName)
 	paramsKeeper.Subspace(planetmoduletypes.ModuleName)
+	paramsKeeper.Subspace(foomoduletypes.ModuleName)
 	// this line is used by starport scaffolding # stargate/app/paramSubspace
 
 	return paramsKeeper
