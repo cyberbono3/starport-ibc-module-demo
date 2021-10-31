@@ -1,0 +1,11 @@
+syntax = "proto3";
+package hello.planet.foo;
+
+option go_package = "github.com/hello/planet/x/foo/types";
+
+
+message Post {
+  
+  string title = 1; 
+  string content = 2; 
+}
